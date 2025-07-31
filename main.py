@@ -7,6 +7,7 @@ from functions.get_files_info import schema_get_files_info
 from functions.get_file_content import schema_get_file_content
 from functions.run_python_file import schema_run_python_file
 from functions.write_file import schema_write_file
+from functions.call_function import call_function
 
 available_functions = types.Tool(
     function_declarations=[
@@ -66,15 +67,21 @@ All paths you provide should be relative to the working directory. You do not ne
         sys.exit(1)
     if is_verbose:
         print(f"User prompt: {user_inputs}")
+    result = None
     if response.function_calls:
         if isinstance(response.function_calls, list):
             for call in response.function_calls:
-                print(f"Calling function: {call.name}({call.args})")
+                result = call_function(call, is_verbose)
         else:
-            print(f"Calling function: {response.function_calls.name}({response.function_calls.args})")
+            result = call_function(response.function_calls, is_verbose)
+            # print(f"Calling function: {response.function_calls.name}({response.function_calls.args})")
+        if not result.parts[0].function_response.response:
+            raise Exception("Error: A fatal error has occurred. Ending program.")
+            sys.exit(1)
     else:
         print(f"Response: {response.text}")
     if is_verbose:
+        print(f"-> {result.parts[0].function_response.response}")
         ptc = response.usage_metadata.prompt_token_count
         ctc = response.usage_metadata.candidates_token_count
         print(f"Prompt tokens: {ptc}\nResponse tokens: {ctc}")
