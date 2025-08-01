@@ -13,7 +13,7 @@ def run_python_file(working_directory, file_path, args=[]):
   if not os.path.splitext(file_abs_path)[1].lower() == '.py' and os.path.isfile(file_abs_path):
     return f'Error: "{file_path}" is not a Python file.'
   try:
-    commands = ["python", file_path]
+    commands = ["python", file_abs_path]
     if args:
       commands.extend(args)
     completed_process = subprocess.run(
@@ -24,6 +24,7 @@ def run_python_file(working_directory, file_path, args=[]):
       timeout=30)
     rtncode_msg = ""
     output = []
+    print("completed_process?", completed_process)
     if completed_process.stdout:
       output.append(f"STDOUT:\n{completed_process.stdout}")
     if completed_process.stderr:
@@ -38,13 +39,13 @@ def run_python_file(working_directory, file_path, args=[]):
 
 schema_run_python_file = types.FunctionDeclaration(
   name="run_python_file",
-  description="Runs the specified python file with it's arguments if they are included, only if it is a file and a python file, and constrained to the working directory.",
+  description="Executes a Python file within the working directory and returns the output from the interpreter.",
   parameters=types.Schema(
       type=types.Type.OBJECT,
       properties={
           "file_path": types.Schema(
               type=types.Type.STRING,
-              description="The file to execute, relative to the working directory.",
+              description="Path to the Python file to execute, relative to the working directory.",
           ),
           "args": types.Schema(
               type=types.Type.ARRAY,
@@ -53,7 +54,7 @@ schema_run_python_file = types.FunctionDeclaration(
                 description="Optional arguments to pass to the Python"
                   " file.",
               ),
-              description="Optional arguments to pass to the Python file. Assumes no arguments unless you know the args without asking.",
+              description="Optional arguments to pass to the Python file.",
           ),
       },
       required=["file_path"]
