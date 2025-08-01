@@ -1,9 +1,19 @@
 from google.genai import types
 
-from functions.get_files_info import get_files_info
-from functions.get_file_content import get_file_content
-from functions.write_file import write_file
-from functions.run_python_file import run_python_file
+from functions.get_files_info import get_files_info, schema_get_files_info
+from functions.get_file_content import get_file_content, schema_get_file_content
+from functions.write_file import write_file, schema_write_file
+from functions.run_python_file import run_python_file, schema_run_python_file
+from config import WORKING_DIR
+
+available_functions = types.Tool(
+    function_declarations=[
+        schema_get_files_info,
+        schema_get_file_content,
+        schema_run_python_file,
+        schema_write_file
+    ]
+)
 
 function_dict = { 
                   "get_files_info": get_files_info,
@@ -18,7 +28,7 @@ def call_function(function_call_part, verbose=False):
   print(f" - Calling function: {function_call_part.name}")
   try:
     args_dict = dict(function_call_part.args)
-    args_dict["working_directory"] = "./calculator"
+    args_dict["working_directory"] = WORKING_DIR
     result = function_dict[function_call_part.name](**args_dict)
     return types.Content(
       role="tool",
