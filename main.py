@@ -35,8 +35,16 @@ def main():
     messages = [
         types.Content(role="user", parts=[types.Part(text=user_inputs)]),
         ]
-    
-    generate_content(client, messages, is_verbose)
+    for i in range(20):
+        try:
+            content_response = generate_content(client, messages, is_verbose)
+            if content_response and content_response.text:
+                print("Final response:")
+                print(content_response.text)
+                break
+
+        except Exception as e:
+            print(f"Error: {e}")
 
 def generate_content(client, messages, is_verbose):
     response = client.models.generate_content(
@@ -47,8 +55,11 @@ def generate_content(client, messages, is_verbose):
             system_instruction=system_prompt
         )
     )
+    # print('candidates:')
+    for candidate in response.candidates:
+        messages.append(candidate.content)
 
-    
+    # print('messages', messages)
 
     if is_verbose:
         ptc = response.usage_metadata.prompt_token_count
@@ -56,9 +67,7 @@ def generate_content(client, messages, is_verbose):
         print(f"Prompt tokens: {ptc}\nResponse tokens: {ctc}")
 
     if not response.function_calls:
-        print("What?")
-        print(response.text)
-        return
+        return response
 
     function_responses = []
 
@@ -72,10 +81,11 @@ def generate_content(client, messages, is_verbose):
         if is_verbose:
             print(f"-> {function_call_result.parts[0].function_response.response}")
         function_responses.append(function_call_result.parts[0])
+        new_message = types.Content(role="tool", parts=[function_call_result.parts[0]])
+        messages.append(new_message)
 
     if not function_responses:
         raise Exception("no function responses generated, exiting.")
-        
 
 
 if __name__ == "__main__":
