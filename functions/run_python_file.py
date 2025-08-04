@@ -24,7 +24,7 @@ def run_python_file(working_directory, file_path, args=[]):
       timeout=30)
     rtncode_msg = ""
     output = []
-    print("completed_process?", completed_process)
+  
     if completed_process.stdout:
       output.append(f"STDOUT:\n{completed_process.stdout}")
     if completed_process.stderr:

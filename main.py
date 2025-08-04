@@ -4,6 +4,7 @@ from google import genai
 from google.genai import types
 import sys
 from prompts import system_prompt
+from config import MAX_ITERS
 from call_function import call_function, available_functions
 
 def main():
@@ -35,16 +36,21 @@ def main():
     messages = [
         types.Content(role="user", parts=[types.Part(text=user_inputs)]),
         ]
-    for i in range(20):
-        try:
-            content_response = generate_content(client, messages, is_verbose)
-            if content_response and content_response.text:
-                print("Final response:")
-                print(content_response.text)
-                break
+    iters = 0
+    while True:
+        iters += 1
+        if iters > MAX_ITERS:
+            print(f"Maximum iterations ({MAX_ITERS}) reached.")
+            sys.exit(1)
 
+        try:
+            final_response = generate_content(client, messages, is_verbose)
+            if final_response:
+                print("Final response:")
+                print(final_response)
+                break
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error in generate_content: {e}")
 
 def generate_content(client, messages, is_verbose):
     response = client.models.generate_content(
@@ -67,7 +73,7 @@ def generate_content(client, messages, is_verbose):
         print(f"Prompt tokens: {ptc}\nResponse tokens: {ctc}")
 
     if not response.function_calls:
-        return response
+        return response.text
 
     function_responses = []
 
